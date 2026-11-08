@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="imgs/conveyor-logo-dark.svg">
-  <img width="96" height="96" style="max-height: 96px; max-width: 96px;" src="imgs/conveyor-logo-light.svg" alt="Socket Conveyor — conveyor-server-client PHP package">
-  </picture>
+  <img width="96" height="96" src="imgs/conveyor-logo.svg" alt="Socket Conveyor — conveyor-server-client PHP package">
 </p>
 
 # Conveyor Server Client
