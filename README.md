@@ -1,25 +1,27 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="imgs/conveyor-logo-dark.svg">
-    <img src="imgs/conveyor-logo-light.svg" width="360" alt="Socket Conveyor — conveyor-server-client PHP package">
+  <source media="(prefers-color-scheme: dark)" srcset="imgs/conveyor-logo-dark.svg">
+  <img width="96" height="96" style="max-height: 96px; max-width: 96px;" src="imgs/conveyor-logo-light.svg" alt="Socket Conveyor — conveyor-server-client PHP package">
   </picture>
 </p>
 
 # Conveyor Server Client
 
 A PHP WebSocket client for [Socket Conveyor](https://socketconveyor.com).
-Composer package: [`kanata-php/conveyor-server-client`](https://packagist.org/packages/kanata-php/conveyor-server-client).
+Composer package: [`firebrikdotcom/conveyor-server-client`](https://packagist.org/packages/firebrikdotcom/conveyor-server-client).
+
+The `firebrikdotcom/*` Composer namespace is being prepared. Registration and release publication are pending; existing installations still use `kanata-php/conveyor-server-client`.
 
 ## Requirements and install
 
-Version **0.2.0** requires PHP **8.3+**, Composer 2, and **OpenSwoole 26.2.x**.
+Version **0.2.0** requires PHP **8.3+**, Composer 2, and **OpenSwoole 26.2 or newer (below 27)**.
 Development requires PHP **8.4.1+** for PHPUnit 13; PHP 8.3 remains supported for consumers.
 TLS connections (`wss`) require OpenSSL. The server is installed separately; it is not a client dependency.
 
 ```sh
 pecl install openswoole-26.2.0
 # Enable extension=openswoole.so in your PHP configuration.
-composer require kanata-php/conveyor-server-client:^0.2
+composer require firebrikdotcom/conveyor-server-client:^0.2
 ```
 
 0.2.0 is a prepared release candidate until its tag is published. Use 0.1.6 for the currently published version.
@@ -97,7 +99,7 @@ The latest Textalk release is 1.6.3. It emits an upstream nullable-parameter dep
 
 See [CHANGELOG.md](CHANGELOG.md). Validate with `composer validate --strict`, `composer audit`, tests and coverage, then `composer archive --format=zip --dir=/tmp/conveyor-client-release` to inspect the package. Composer derives its version from Git tags; do not add a hardcoded `version` field.
 
-The existing package is owned on Packagist by `lotharthesavior` and still references `kanata-php/conveyor-server-client`; the current Git remote is `firebrikdotcom/conveyor-server-client`. The owner must confirm the redirect/webhook before release. There is no automated publish workflow: an approved `0.2.0` Git tag and Packagist webhook/update are the release path. Do not push/tag/publish until the orchestrator verifies this candidate.
+The previous Packagist package is `kanata-php/conveyor-server-client`, maintained by `lotharthesavior`. Register the new `firebrikdotcom/conveyor-server-client` identity from [this repository](https://github.com/firebrikdotcom/conveyor-server-client), verify maintainer and webhook access, then publish and verify the approved `0.2.0` tag. The new install command requires that registration and release. Keep the old package available for existing installations. There is no automated publication workflow.
 
 ## License
 

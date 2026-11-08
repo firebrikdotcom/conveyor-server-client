@@ -1,5 +1,5 @@
 {
-    "name": "kanata-php/conveyor-server-client",
+    "name": "firebrikdotcom/conveyor-server-client",
     "description": "Server-Side WebSocket Client ready for Socket Conveyor",
     "type": "library",
     "license": "MIT",
@@ -52,5 +52,11 @@
             "/.gitignore",
             "/.git"
         ]
+    },
+    "homepage": "https://github.com/firebrikdotcom/conveyor-server-client",
+    "support": {
+        "issues": "https://github.com/firebrikdotcom/conveyor-server-client/issues",
+        "source": "https://github.com/firebrikdotcom/conveyor-server-client",
+        "docs": "https://github.com/firebrikdotcom/conveyor-server-client#readme"
     }
 }

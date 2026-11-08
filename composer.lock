@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bd77a47c3f4a7a41b201d51265a86d9d",
+    "content-hash": "7c5bc1242ce834b72c04d1d35e2de1db",
     "packages": [
         {
             "name": "phrity/net-uri",
