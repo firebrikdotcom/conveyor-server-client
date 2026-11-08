@@ -10,7 +10,7 @@
 A PHP WebSocket client for [Socket Conveyor](https://socketconveyor.com).
 Composer package: [`firebrikdotcom/conveyor-server-client`](https://packagist.org/packages/firebrikdotcom/conveyor-server-client).
 
-The `firebrikdotcom/*` Composer namespace is being prepared. Registration and release publication are pending; existing installations still use `kanata-php/conveyor-server-client`.
+Version **0.2.0** is published as `firebrikdotcom/conveyor-server-client` on Packagist. Existing projects using `kanata-php/conveyor-server-client` can migrate by updating their Composer requirement; the previous package remains available.
 
 ## Requirements and install
 
@@ -24,7 +24,7 @@ pecl install openswoole-26.2.0
 composer require firebrikdotcom/conveyor-server-client:^0.2
 ```
 
-0.2.0 is a prepared release candidate until its tag is published. Use 0.1.6 for the currently published version.
+The published 0.2.0 release uses the new `firebrikdotcom` Composer name.
 
 ## Usage
 
@@ -99,7 +99,7 @@ The latest Textalk release is 1.6.3. It emits an upstream nullable-parameter dep
 
 See [CHANGELOG.md](CHANGELOG.md). Validate with `composer validate --strict`, `composer audit`, tests and coverage, then `composer archive --format=zip --dir=/tmp/conveyor-client-release` to inspect the package. Composer derives its version from Git tags; do not add a hardcoded `version` field.
 
-The previous Packagist package is `kanata-php/conveyor-server-client`, maintained by `lotharthesavior`. Register the new `firebrikdotcom/conveyor-server-client` identity from [this repository](https://github.com/firebrikdotcom/conveyor-server-client), verify maintainer and webhook access, then publish and verify the approved `0.2.0` tag. The new install command requires that registration and release. Keep the old package available for existing installations. There is no automated publication workflow.
+Packagist registers `firebrikdotcom/conveyor-server-client` from [this repository](https://github.com/firebrikdotcom/conveyor-server-client), with **0.2.0** published under the new name. For future releases, verify maintainer and webhook access, publish a new version tag, and confirm Packagist indexes that exact commit. The previous `kanata-php/conveyor-server-client` package remains available for existing installations. There is no automated publication workflow.
 
 ## License
 
