@@ -2,7 +2,8 @@
 
 namespace Kanata\ConveyorServerClient;
 
-use co;
+use OpenSwoole\Coroutine;
+use OpenSwoole\Coroutine\Scheduler;
 use Exception;
 use OpenSwoole\Timer;
 use Psr\Log\LoggerInterface;
@@ -117,59 +118,83 @@ class Client implements ClientInterface
      */
     public function connect(): void
     {
-        if (!$this->getClient()?->isConnected()) {
+        if ($this->getClient()?->isConnected()) {
+            return;
+        }
+
+        if ($this->client !== null) {
             $this->close();
         }
 
-        co::run(function () {
-            go(fn () => $this->startConnection());
-            go(fn () => $this->pingTimer = Timer::tick(5000, function () {
-                if ($this->getClient()?->isConnected()) {
-                    $this->getClient()->ping();
-                } else {
-                    Timer::clear($this->getPingTimer());
+        $scheduler = new Scheduler();
+        $scheduler->set(['hook_flags' => \OpenSwoole\Runtime::HOOK_ALL]);
+        $error = null;
+        $scheduler->add(function () use (&$error) {
+            try {
+                $this->startConnection();
+            } catch (Throwable $e) {
+                $error = $e;
+            } finally {
+                try {
+                    $this->close();
+                } catch (Throwable $e) {
+                    $error ??= $e;
                 }
-            }));
+            }
         });
-    }
-
-    private function startConnection()
-    {
-        try {
-            $this->handleClientConnection();
-            $this->reconnectionAttemptsCount = 0;
-        } catch (TimeoutException $e) {
-            throw $e;
-        } catch (ConnectionException $e) {
-            $this->handleReconnection($e);
-        } catch (Exception $e) {
-            $this->handleDisconnection();
-            $this->handleReconnection($e);
+        $scheduler->start();
+        if ($error !== null) {
+            throw $error;
         }
     }
 
-    private function handleReconnection(Throwable $e)
+    private function startConnection(): void
     {
-        if (is_callable($this->onReconnectionCallback)) {
-            call_user_func(
-                $this->onReconnectionCallback,
-                $this,
-                $e,
-            );
-        }
-
-        if (
-            $this->reconnect
-            && (
-                $this->reconnectionAttemptsCount < $this->reconnectionAttempts
-                || -1 === $this->reconnectionAttempts
-            )
-        ) {
-            sleep($this->reconnectionInterval);
-            echo 'Reconnecting (attempt ' . $this->reconnectionAttemptsCount . ')...' . PHP_EOL;
-            $this->reconnectionAttemptsCount++;
-            $this->connect();
-        }
+        $this->reconnectionAttemptsCount = 0;
+        do {
+            $heartbeatError = null;
+            try {
+                $this->pingTimer = Timer::tick(5000, function () use (&$heartbeatError) {
+                    try {
+                        if ($this->getClient()?->isConnected()) {
+                            $this->getClient()->ping();
+                        }
+                    } catch (Throwable $e) {
+                        $heartbeatError = $e;
+                        // Abort the socket read; a graceful close can itself block.
+                        try {
+                            $this->getClient()?->disconnect();
+                        } catch (Throwable) {
+                            // Preserve the original heartbeat failure.
+                        }
+                    }
+                });
+                try {
+                    $this->handleClientConnection();
+                } catch (Throwable $e) {
+                    throw $heartbeatError ?? $e;
+                }
+                if ($heartbeatError !== null) {
+                    throw $heartbeatError;
+                }
+                return;
+            } catch (TimeoutException $e) {
+                throw $e;
+            } catch (Exception $e) {
+                $this->handleDisconnection();
+                if (is_callable($this->onReconnectionCallback)) {
+                    call_user_func($this->onReconnectionCallback, $this, $e);
+                }
+                if (!$this->reconnect || ($this->reconnectionAttempts !== -1
+                    && $this->reconnectionAttemptsCount >= $this->reconnectionAttempts)) {
+                    return;
+                }
+                if ($this->reconnectionInterval > 0) {
+                    Coroutine::sleep($this->reconnectionInterval);
+                }
+                $this->reconnectionAttemptsCount++;
+            }
+        } while (true);
     }
 
     /**
@@ -177,10 +202,10 @@ class Client implements ClientInterface
      */
     public function send(string $message): void
     {
-        $this->client->send(json_encode([
+        $this->requireClient()->send(json_encode([
             'action' => 'broadcast-action',
             'data' => $message,
-        ]));
+        ], JSON_THROW_ON_ERROR));
     }
 
     /**
@@ -188,7 +213,7 @@ class Client implements ClientInterface
      */
     public function sendRaw(string $message): void
     {
-        $this->client->send($message);
+        $this->requireClient()->send($message);
     }
 
     protected function handleDisconnection(): void
@@ -211,7 +236,7 @@ class Client implements ClientInterface
      */
     protected function handleClientConnection(): void
     {
-        $this->client = new WsClient(
+        $this->client = $this->createClient(
             uri: "{$this->protocol}://{$this->uri}:{$this->port}/{$this->query}",
             options: array_merge([
                 'timeout' => $this->timeout,
@@ -225,7 +250,7 @@ class Client implements ClientInterface
         $this->connectionReady();
 
         try {
-            while ($this->client && $message = $this->client->receive()) {
+            while ($this->client && ($message = $this->client->receive()) !== null) {
                 if (null === $this->onMessageCallback) {
                     continue;
                 }
@@ -247,10 +272,10 @@ class Client implements ClientInterface
             return;
         }
 
-        $this->client->send(json_encode([
+        $this->requireClient()->send(json_encode([
             'action' => 'assoc-user-to-fd-action',
             'userId' => $this->userId,
-        ]));
+        ], JSON_THROW_ON_ERROR));
     }
 
     protected function handleChannelConnection(): void
@@ -259,10 +284,10 @@ class Client implements ClientInterface
             return;
         }
 
-        $this->client->send(json_encode([
+        $this->requireClient()->send(json_encode([
             'action' => 'channel-connect',
             'channel' => $this->channel,
-        ]));
+        ], JSON_THROW_ON_ERROR));
     }
 
     protected function connectionReady(): void
@@ -274,10 +299,24 @@ class Client implements ClientInterface
         call_user_func($this->onReadyCallback, $this);
     }
 
+    protected function createClient(string $uri, array $options): WsClient
+    {
+        return new WsClient($uri, $options);
+    }
+
+    private function requireClient(): WsClient
+    {
+        return $this->client ?? throw new \LogicException('Connect before sending a message.');
+    }
+
     public function close(): void
     {
-        Timer::clear($this->getPingTimer());
-        $this->client?->close();
+        if ($this->pingTimer !== null) {
+            Timer::clear($this->pingTimer);
+            $this->pingTimer = null;
+        }
+        $client = $this->client;
         $this->client = null;
+        $client?->close();
     }
 }

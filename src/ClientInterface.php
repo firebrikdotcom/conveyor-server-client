@@ -4,7 +4,7 @@ namespace Kanata\ConveyorServerClient;
 
 use WebSocket\Client as WsClient;
 
- interface ClientInterface
+interface ClientInterface
 {
     public function connect(): void;
     public function getClient(): ?WsClient;

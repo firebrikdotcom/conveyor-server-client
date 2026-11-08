@@ -1,1 +1,4 @@
 vendor
+.cache/
+.phpunit.cache/
+coverage.xml

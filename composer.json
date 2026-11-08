@@ -14,27 +14,43 @@
         }
     },
     "require": {
-        "php": "^8.2",
-        "textalk/websocket": "^1.5"
+        "php": "^8.3",
+        "ext-openswoole": "^26.2",
+        "textalk/websocket": "^1.6.3",
+        "psr/log": "^3.0.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "codedungeon/phpunit-result-printer": "^0.32.0",
-        "openswoole/ide-helper": "^22.0",
-        "kanata-php/socket-conveyor": "^3.0.1-beta",
-        "openswoole/core": "^22.1"
+        "phpunit/phpunit": "^13.4.6",
+        "openswoole/ide-helper": "^26.2"
     },
     "scripts": {
         "test": [
-            "vendor/bin/phpunit"
+            "sh scripts/test.sh"
         ],
         "coverage": [
-            "vendor/bin/phpunit --coverage-clover coverage.xml"
+            "sh scripts/test.sh --coverage-text --coverage-clover coverage.xml"
+        ],
+        "lint": [
+            "find src tests -name \"*.php\" -print0 | xargs -0 -n1 php -l"
         ]
     },
-    "config": {
-        "allow-plugins": {
-            "phpro/grumphp": false
-        }
+    "archive": {
+        "exclude": [
+            "/tests",
+            "/.github",
+            "/composer.lock",
+            "/phpunit.xml",
+            "/coverage.xml",
+            "/.cache",
+            "/.phpunit.cache",
+            "/task.json",
+            "/review-findings.json",
+            "/scripts",
+            "/imgs/logo.svg",
+            "/vendor",
+            "/dist",
+            "/.gitignore",
+            "/.git"
+        ]
     }
 }
